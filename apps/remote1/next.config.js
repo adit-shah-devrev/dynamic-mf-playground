@@ -4,14 +4,6 @@
 const { withNx } = require('@nrwl/next/plugins/with-nx');
 const { NextFederationPlugin } = require('@module-federation/nextjs-mf');
 
-const remotes = (isServer) => {
-  const location = isServer ? 'ssr' : 'chunks';
-  return {
-    remote1: `remote1@http://localhost:3001/_next/static/${location}/remoteEntry.js`,
-    remote2: `remote2@http://localhost:3002/_next/static/${location}/remoteEntry.js`,
-  };
-};
-
 /**
  * @type {import('@nrwl/next/plugins/with-nx').WithNxOptions}
  **/
@@ -25,11 +17,14 @@ const nextConfig = {
     config.externals = [...config.externals, 'canvas', 'jsdom'];
     config.plugins.push(
       new NextFederationPlugin({
-        name: 'host',
+        name: 'remote1',
         filename: 'static/chunks/remoteEntry.js',
-        exposes: {},
+        exposes: {
+          './product-recommendations':
+            './components/product-recommendations.tsx',
+        },
         extraOptions: {},
-        remotes: remotes(options.isServer),
+        remotes: {},
         shared: {},
       })
     );
