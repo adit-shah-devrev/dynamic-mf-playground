@@ -22,7 +22,11 @@ const nextConfig = {
         exposes: {},
         extraOptions: {},
         remotes: {},
-        shared: {},
+        shared: {
+          '@tanstack/react-query': {
+            singleton: true,
+          },
+        },
       })
     );
 
