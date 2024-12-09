@@ -1,10 +1,9 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { init, loadRemote } from '@module-federation/runtime';
+import { RemoteModule } from '@dynamic-mf-playground/shared-types';
 
 interface RemoteComponentWrapperProps {
-  url: string;
-  scope: string;
-  module: string;
+  module: RemoteModule;
 }
 
 const getRemoteUrl = (url: string) => {
@@ -13,11 +12,7 @@ const getRemoteUrl = (url: string) => {
   return `${url}/_next/static/${location}/remoteEntry.js`;
 };
 
-const RemoteComponentWrapper = ({
-  url,
-  scope,
-  module,
-}: RemoteComponentWrapperProps) => {
+const RemoteComponentWrapper = ({ module }: RemoteComponentWrapperProps) => {
   // Lazy load the remote component
   const RemoteComponent = lazy(() => {
     // Initialize federation runtime
@@ -25,18 +20,22 @@ const RemoteComponentWrapper = ({
       name: 'host',
       remotes: [
         {
-          name: scope,
-          entry: getRemoteUrl(url),
+          name: module.scope,
+          entry: getRemoteUrl(module.url),
         },
       ],
     });
 
     // Import the remote component
-    return loadRemote(scope + '/' + module);
+    return loadRemote(module.scope + '/' + module.module);
   });
 
+  useEffect(() => {
+    console.log(`Loading remote module: ${module.name}`);
+  }, [module]);
+
   return (
-    <Suspense fallback={<div>Loading remote component...</div>}>
+    <Suspense fallback={<div>Loading {module.name}...</div>}>
       <RemoteComponent />
     </Suspense>
   );
