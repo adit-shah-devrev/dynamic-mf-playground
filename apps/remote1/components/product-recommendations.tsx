@@ -1,37 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   ProductsResponse,
-  API_ENDPOINTS,
+  QUERY_KEYS,
 } from '@dynamic-mf-playground/shared-types';
 import styles from './product-recommendations.module.css';
 
 const ProductRecommendations = () => {
-  const [data, setData] = useState<ProductsResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  // This will use the cached data from host if available
+  const { data, isLoading, error } = useQuery<ProductsResponse, Error>(
+    [QUERY_KEYS.PRODUCTS]
+    // No fetch function needed here - it will use the cached data
+    // If cache is empty, it will use the fetch function from the host
+  );
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch(API_ENDPOINTS.PRODUCTS);
-        if (!response.ok) {
-          throw new Error('Failed to fetch recommendations');
-        }
-        const result = await response.json();
-        setData(result);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Unknown error'));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
-  if (isLoading)
+  if (isLoading) {
     return <div className={styles.loading}>Loading recommendations...</div>;
-  if (error) return <div className={styles.error}>{error.message}</div>;
+  }
+
+  if (error) {
+    return <div className={styles.error}>{error.message}</div>;
+  }
+
   if (!data) return null;
 
   return (

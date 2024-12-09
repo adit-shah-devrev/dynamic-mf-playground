@@ -24,7 +24,11 @@ const nextConfig = {
         },
         extraOptions: {},
         remotes: {},
-        shared: {},
+        shared: {
+          '@tanstack/react-query': {
+            singleton: true,
+          },
+        },
       })
     );
 

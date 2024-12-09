@@ -321,3 +321,12 @@
     margin-bottom: 16px;
   }
 }
+
+.productsSection {
+  margin-bottom: 48px;
+}
+
+.remotesSection {
+  padding-top: 24px;
+  border-top: 1px solid #e2e8f0;
+}
