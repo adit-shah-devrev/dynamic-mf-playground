@@ -1,103 +1,52 @@
-import { useQuery } from '@tanstack/react-query';
-import dynamic from 'next/dynamic';
-import {
-  Product,
-  ProductsResponse,
-  API_ENDPOINTS,
-  QUERY_KEYS,
-} from '@dynamic-mf-playground/shared-types';
+import { useState } from 'react';
+import RemoteComponentWrapper from '../components/remote-component-wrapper';
 import styles from './index.module.css';
 
-const ProductRecommendations = dynamic(
-  () => import('remote1/product-recommendations'),
+const remoteConfigs = [
   {
-    loading: () => (
-      <div className={styles.loading}>Loading Recommendations...</div>
-    ),
-  }
-);
-
-const ProductReviews = dynamic(() => import('remote2/product-reviews'), {
-  loading: () => <div className={styles.loading}>Loading Reviews...</div>,
-});
-
-const fetchProducts = async (): Promise<ProductsResponse> => {
-  const response = await fetch(API_ENDPOINTS.PRODUCTS);
-  if (!response.ok) {
-    throw new Error('Failed to fetch products');
-  }
-  return response.json();
-};
+    name: 'Product Recommendations',
+    url: 'http://localhost:3001',
+    scope: 'remote1',
+    module: 'product-recommendations',
+  },
+  {
+    name: 'Product Reviews',
+    url: 'http://localhost:3002',
+    scope: 'remote2',
+    module: 'product-reviews',
+  },
+];
 
 export default function Home() {
-  const { data, isLoading, error } = useQuery(
-    [QUERY_KEYS.PRODUCTS],
-    fetchProducts
-  );
-
-  if (error) {
-    return (
-      <div className={styles.error}>
-        Error loading products. Please try again later.
-      </div>
-    );
-  }
+  const [selectedRemote, setSelectedRemote] = useState(remoteConfigs[0]);
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Featured Products</h1>
-        <p className={styles.subtitle}>
-          Discover our handpicked selection of premium products
-        </p>
+      <h1>Dynamic Remote Loading Demo</h1>
+
+      <div className={styles.controls}>
+        <select
+          value={selectedRemote.name}
+          onChange={(e) => {
+            const config = remoteConfigs.find((c) => c.name === e.target.value);
+            if (config) setSelectedRemote(config);
+          }}
+        >
+          {remoteConfigs.map((config) => (
+            <option key={config.name} value={config.name}>
+              {config.name}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {isLoading ? (
-        <div className={styles.loading}>Loading products...</div>
-      ) : (
-        <div className={styles.productGrid}>
-          {data?.products.map((product) => (
-            <div key={product.id} className={styles.productCard}>
-              <img
-                src={product.image}
-                alt={product.name}
-                className={styles.productImage}
-              />
-              <div className={styles.productInfo}>
-                <h3 className={styles.productName}>{product.name}</h3>
-                <p className={styles.productPrice}>
-                  ${product.price.toFixed(2)}
-                </p>
-                <div className={styles.productMeta}>
-                  <div className={styles.rating}>
-                    <span className={styles.ratingIcon}>★</span>
-                    {product.rating}
-                  </div>
-                  <span className={styles.stock}>
-                    {product.inStock ? 'In Stock' : 'Out of Stock'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Remote Components */}
-      <section>
-        <ProductRecommendations />
-      </section>
-
-      <section>
-        <ProductReviews />
-      </section>
-
-      {/* Error Boundary could be added here */}
-      {error && (
-        <div className={styles.error}>
-          An error occurred while loading some components.
-        </div>
-      )}
+      <div className={styles.remoteContainer}>
+        <RemoteComponentWrapper
+          url={selectedRemote.url}
+          scope={selectedRemote.scope}
+          module={selectedRemote.module}
+        />
+      </div>
     </div>
   );
 }
